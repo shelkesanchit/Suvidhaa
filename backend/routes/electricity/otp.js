@@ -19,6 +19,14 @@ function generateOTP() {
 }
 
 function createTransporter() {
+  // Log email config (without password) for debugging
+  console.log('Email config:', {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    user: process.env.EMAIL_USER || 'NOT SET',
+    passSet: process.env.EMAIL_PASSWORD ? 'YES' : 'NO'
+  });
+
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.EMAIL_PORT) || 587,
@@ -76,10 +84,19 @@ router.post('/send', async (req, res) => {
     });
     res.json({ message: 'OTP sent successfully. Please check your email.' });
   } catch (err) {
-    console.error('OTP email send error:', err);
+    console.error('OTP email send error:', err.message);
+    console.error('Full error:', err);
     // Remove unsent OTP so user can try again
     otpStore.delete(email);
-    res.status(500).json({ error: 'Failed to send OTP. Please verify the email address and try again.' });
+
+    // More specific error messages
+    if (err.message.includes('EAUTH') || err.message.includes('authentication')) {
+      res.status(500).json({ error: 'Email authentication failed. Check EMAIL_USER and EMAIL_PASSWORD configuration.' });
+    } else if (err.message.includes('ECONNECTION') || err.message.includes('ENOTFOUND')) {
+      res.status(500).json({ error: 'Could not connect to email server. Check EMAIL_HOST configuration.' });
+    } else {
+      res.status(500).json({ error: `Failed to send OTP: ${err.message}` });
+    }
   }
 });
 
