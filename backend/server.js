@@ -8,6 +8,9 @@ require('./config/loadEnv');
 
 const app = express();
 
+// Trust proxy - required for Render, Heroku, etc. (fixes rate limiter X-Forwarded-For warning)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 

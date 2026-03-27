@@ -19,23 +19,30 @@ function generateOTP() {
 }
 
 function createTransporter() {
+  const port = parseInt(process.env.EMAIL_PORT) || 465;
+  const secure = port === 465; // Use SSL for port 465
+
   // Log email config (without password) for debugging
   console.log('Email config:', {
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
+    port: port,
+    secure: secure,
     user: process.env.EMAIL_USER || 'NOT SET',
     passSet: process.env.EMAIL_PASSWORD ? 'YES' : 'NO'
   });
 
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false,
+    port: port,
+    secure: secure, // true for 465, false for 587
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
     tls: { rejectUnauthorized: false },
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
   });
 }
 
