@@ -1,0 +1,373 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+  InputAdornment,
+  Divider,
+} from '@mui/material';
+import {
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  CheckCircle as CheckCircleIcon,
+  Refresh as RefreshIcon,
+  ArrowForward as ArrowForwardIcon,
+  Lock as LockIcon,
+} from '@mui/icons-material';
+import api from '../../utils/api';
+import toast from 'react-hot-toast';
+
+/**
+ * EmailOtpVerification — reusable dialog for email OTP verification.
+ *
+ * Props:
+ *  open           {boolean}   — whether the dialog is open
+ *  onClose        {function}  — called when user cancels
+ *  onVerified     {function}  — called with (email) when OTP is verified
+ *  initialEmail   {string}    — pre-fill the email field (optional)
+ *  initialMobile  {string}    — pre-fill the mobile field (optional)
+ *  title          {string}    — dialog title (optional)
+ */
+const EmailOtpVerification = ({
+  open,
+  onClose,
+  onVerified,
+  initialEmail = '',
+  initialMobile = '',
+  title = 'Verify Contact',
+}) => {
+  const [mode, setMode] = useState('email'); // 'email' | 'mobile'
+  const [step, setStep] = useState('contact'); // 'contact' | 'otp' | 'verified'
+  const [email, setEmail] = useState(initialEmail);
+  const [mobile, setMobile] = useState(initialMobile);
+  const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [countdown, setCountdown] = useState(0); // resend cooldown
+
+  // Sync initial values while dialog is open and user is still on first step.
+  useEffect(() => {
+    if (open && initialEmail && step === 'contact') {
+      setEmail(initialEmail);
+    }
+  }, [open, initialEmail, step]);
+
+  useEffect(() => {
+    if (open && initialMobile && step === 'contact') {
+      setMobile(initialMobile);
+    }
+  }, [open, initialMobile, step]);
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setMode('email');
+      setStep('contact');
+      setEmail(initialEmail || '');
+      setMobile(initialMobile || '');
+      setOtp('');
+      setError('');
+      setCountdown(0);
+    }
+  }, [open, initialEmail, initialMobile]);
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const resetForModeSwitch = nextMode => {
+    if (loading) return;
+    setMode(nextMode);
+    setStep('contact');
+    setOtp('');
+    setError('');
+    setCountdown(0);
+  };
+
+  const handleSendOtp = async () => {
+    setError('');
+    if (mode === 'email') {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('Please enter a valid email address.');
+        return;
+      }
+    } else {
+      if (!mobile || !/^\d{10}$/.test(mobile)) {
+        setError('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+    }
+
+    if (mode === 'mobile') {
+      setStep('otp');
+      setCountdown(60);
+      toast.success('Mobile OTP sent. Use 123456 to verify.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/electricity/otp/send', { email });
+      setStep('otp');
+      setCountdown(60);
+      toast.success('OTP sent! Please check your inbox.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setError('');
+    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      setError('Please enter the 6-digit OTP.');
+      return;
+    }
+
+    if (mode === 'mobile') {
+      if (otp !== '123456') {
+        setError('Invalid OTP. Enter 123456.');
+        return;
+      }
+      setStep('verified');
+      toast.success('Mobile verified successfully!');
+      setTimeout(() => {
+        onVerified((email || initialEmail || '').trim());
+      }, 1200);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/electricity/otp/verify', { email, otp });
+      setStep('verified');
+      toast.success('Email verified successfully!');
+      // Short delay so user sees the verified screen, then close
+      setTimeout(() => {
+        onVerified((email || initialEmail || '').trim());
+      }, 1200);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setOtp('');
+    setError('');
+
+    if (mode === 'mobile') {
+      setCountdown(60);
+      toast.success('Mobile OTP resent. Use 123456.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/electricity/otp/send', { email });
+      setCountdown(60);
+      toast.success('New OTP sent!');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to resend OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{ sx: { borderRadius: 3 } }}
+    >
+      <Box sx={{ background: 'linear-gradient(135deg, #1565c0, #1976d2)', px: 3, py: 2.5 }}>
+        <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>
+          {title}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mt: 0.5 }}>
+          Verify via email or mobile to continue
+        </Typography>
+      </Box>
+
+      <DialogContent sx={{ pt: 3, pb: 1 }}>
+        {step === 'contact' && (
+          <Box key={`contact-${mode}`}>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Button
+                fullWidth
+                variant={mode === 'email' ? 'contained' : 'outlined'}
+                onClick={() => resetForModeSwitch('email')}
+                disabled={loading}
+                startIcon={<EmailIcon />}
+              >
+                Email
+              </Button>
+              <Button
+                fullWidth
+                variant={mode === 'mobile' ? 'contained' : 'outlined'}
+                onClick={() => resetForModeSwitch('mobile')}
+                disabled={loading}
+                startIcon={<PhoneIcon />}
+              >
+                Mobile
+              </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              {mode === 'email' ? (
+                <EmailIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+              ) : (
+                <PhoneIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+              )}
+              <Typography variant="body1" fontWeight={600}>
+                {mode === 'email' ? 'Enter your email address' : 'Enter your mobile number'}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+              {mode === 'email'
+                ? 'An OTP will be sent to this email. The receipt will also be delivered here after submission.'
+                : 'A mobile OTP will be generated for this number. Use 123456 to verify in demo mode.'}
+            </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            <TextField
+              key={`contact-input-${mode}`}
+              fullWidth
+              label={mode === 'email' ? 'Email Address' : 'Mobile Number'}
+              type={mode === 'email' ? 'email' : 'tel'}
+              value={mode === 'email' ? email : mobile}
+              onChange={e => {
+                if (mode === 'email') {
+                  setEmail(e.target.value);
+                } else {
+                  setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
+                }
+                setError('');
+              }}
+              onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {mode === 'email' ? (
+                      <EmailIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    ) : (
+                      <PhoneIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+              inputProps={mode === 'mobile' ? { maxLength: 10 } : undefined}
+              autoComplete={mode === 'email' ? 'email' : 'tel'}
+              autoFocus
+            />
+          </Box>
+        )}
+
+        {step === 'otp' && (
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              <LockIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+              <Typography variant="body1" fontWeight={600}>
+                Enter OTP
+              </Typography>
+            </Box>
+            <Alert severity="success" icon={mode === 'email' ? <EmailIcon /> : <PhoneIcon />} sx={{ mb: 2 }}>
+              {mode === 'email' ? (
+                <>OTP sent to <strong>{email}</strong></>
+              ) : (
+                <>OTP sent to <strong>{mobile}</strong>. Use <strong>123456</strong></>
+              )}
+            </Alert>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            <TextField
+              fullWidth
+              label="6-Digit OTP"
+              value={otp}
+              onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleVerifyOtp()}
+              inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: 28, letterSpacing: 8, fontWeight: 700 } }}
+              autoFocus
+              placeholder="• • • • • •"
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+              <Button
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={handleResend}
+                disabled={countdown > 0 || loading}
+                sx={{ textTransform: 'none' }}
+              >
+                Resend OTP {countdown > 0 ? `(${countdown}s)` : ''}
+              </Button>
+              <Button
+                size="small"
+                onClick={() => { setStep('contact'); setError(''); setOtp(''); }}
+                disabled={loading}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                Change {mode === 'email' ? 'Email' : 'Mobile'}
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {step === 'verified' && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <CheckCircleIcon sx={{ fontSize: 72, color: 'success.main', mb: 2 }} />
+            <Typography variant="h6" fontWeight={700} color="success.main">
+              {mode === 'email' ? 'Email Verified!' : 'Mobile Verified!'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Submitting your application...
+            </Typography>
+          </Box>
+        )}
+      </DialogContent>
+
+      {step !== 'verified' && (
+        <>
+          <Divider sx={{ mx: 2 }} />
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={onClose} disabled={loading} color="inherit">
+              Cancel
+            </Button>
+            {step === 'contact' && (
+              <Button
+                variant="contained"
+                onClick={handleSendOtp}
+                disabled={loading}
+                endIcon={loading ? <CircularProgress size={16} color="inherit" /> : <ArrowForwardIcon />}
+              >
+                Send {mode === 'email' ? 'OTP' : 'Mobile OTP'}
+              </Button>
+            )}
+            {step === 'otp' && (
+              <Button
+                variant="contained"
+                onClick={handleVerifyOtp}
+                disabled={loading || otp.length !== 6}
+                endIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
+              >
+                Verify & Submit
+              </Button>
+            )}
+          </DialogActions>
+        </>
+      )}
+    </Dialog>
+  );
+};
+
+export default EmailOtpVerification;

@@ -1,0 +1,319 @@
+/**
+ * Virtual Keyboard Styles
+ */
+
+.simple-keyboard {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif !important;
+}
+
+.virtual-keyboard-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: var(--kiosk-rail-space, 208px);
+  z-index: 99999;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.25s ease;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+@media (max-width: 768px) {
+  .virtual-keyboard-wrapper {
+    right: 0;
+  }
+}
+
+.virtual-keyboard-wrapper.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.virtual-keyboard-container {
+  background: linear-gradient(180deg, #2a2d35 0%, #1e2028 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+  padding: 0 10px 12px;
+  width: 100%;
+}
+
+/* Suggestions */
+.keyboard-suggestions {
+  display: flex;
+  align-items: center;
+  padding: 8px 4px;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+}
+
+.suggestions-list {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.suggestions-list::-webkit-scrollbar { display: none; }
+
+.suggestion-item {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.suggestion-item:active {
+  background: rgba(25, 118, 210, 0.4);
+  transform: scale(0.97);
+}
+
+.keyboard-lang-indicator {
+  background: linear-gradient(180deg, #f57c00 0%, #e65100 100%);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Keyboard rows */
+.virtual-keyboard .simple-keyboard .hg-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+  width: 100%;
+}
+
+.virtual-keyboard .simple-keyboard .hg-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Base button */
+.virtual-keyboard .simple-keyboard .hg-button {
+  background: linear-gradient(180deg, #4a4e59 0%, #3a3e48 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  height: 50px;
+  min-width: 36px;
+  margin: 0 2px;
+  padding: 0 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  flex-shrink: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.virtual-keyboard .simple-keyboard .hg-button:active {
+  background: linear-gradient(180deg, #3a3e48 0%, #2a2e38 100%);
+  transform: translateY(1px);
+}
+
+/* Special keys */
+.virtual-keyboard .simple-keyboard .keyboard-key-special {
+  background: linear-gradient(180deg, #3d4150 0%, #2d3140 100%) !important;
+  flex-grow: 0 !important;
+}
+
+/* DONE BUTTON - SMALL */
+.virtual-keyboard .simple-keyboard .keyboard-key-done,
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{done}"] {
+  background: linear-gradient(180deg, #3d4150 0%, #2d3140 100%) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  flex: 0 0 50px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+}
+
+/* SPACE BAR - LARGE with hint */
+.virtual-keyboard .simple-keyboard .keyboard-key-space,
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{space}"] {
+  background: linear-gradient(180deg, #4a4e59 0%, #3a3e48 100%) !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  margin-left: 8px !important;
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  letter-spacing: 0.5px;
+}
+
+/* Other special keys */
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{bksp}"] {
+  min-width: 65px; max-width: 85px; flex-grow: 0 !important;
+}
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{enter}"] {
+  min-width: 70px; max-width: 90px; flex-grow: 0 !important;
+}
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{shift}"] {
+  min-width: 55px; max-width: 75px; flex-grow: 0 !important;
+}
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{tab}"] {
+  min-width: 50px; max-width: 65px; flex-grow: 0 !important;
+}
+.virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{lock}"] {
+  min-width: 60px; max-width: 75px; flex-grow: 0 !important;
+}
+
+/* Language menu */
+.lang-menu-overlay {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+  z-index: 100000;
+}
+
+.lang-menu {
+  background: #2a2d35;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 280px;
+}
+
+.lang-menu-title {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-bottom: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.lang-option:last-child { margin-bottom: 0; }
+.lang-option:hover { background: rgba(255, 255, 255, 0.1); }
+.lang-option.active { background: rgba(25, 118, 210, 0.3); border-color: rgba(25, 118, 210, 0.5); }
+
+.lang-option .lang-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.lang-option .lang-name {
+  flex: 1;
+  text-align: left;
+}
+
+.lang-option .lang-desc {
+  width: 100%;
+  margin-left: 48px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 1366px) {
+  .virtual-keyboard-container { padding: 0 8px 10px; }
+  .virtual-keyboard .simple-keyboard .hg-button { height: 44px; font-size: 16px; min-width: 32px; border-radius: 6px; }
+  .virtual-keyboard .simple-keyboard .hg-row { margin-bottom: 5px; }
+  .keyboard-suggestions { padding: 6px 2px; margin-bottom: 6px; }
+  .suggestion-item { padding: 5px 10px; font-size: 12px; border-radius: 12px; }
+  .virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{done}"] { width: 45px !important; min-width: 45px !important; max-width: 45px !important; flex: 0 0 45px !important; font-size: 12px !important; }
+  .virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{space}"] { font-size: 10px !important; }
+}
+
+@media (min-width: 1601px) {
+  .virtual-keyboard-container { padding: 0 16px 14px; }
+  .virtual-keyboard .simple-keyboard .hg-button { height: 54px; font-size: 19px; min-width: 42px; border-radius: 10px; margin: 0 3px; }
+  .virtual-keyboard .simple-keyboard .hg-row { margin-bottom: 7px; }
+  .virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{done}"] { width: 55px !important; min-width: 55px !important; max-width: 55px !important; flex: 0 0 55px !important; font-size: 14px !important; }
+  .suggestion-item { padding: 8px 14px; font-size: 14px; }
+}
+
+@media (min-width: 1920px) {
+  .virtual-keyboard-container { padding: 0 20px 18px; max-width: 1800px; margin: 0 auto; }
+  .virtual-keyboard .simple-keyboard .hg-button { height: 58px; font-size: 20px; min-width: 46px; margin: 0 4px; }
+  .virtual-keyboard .simple-keyboard .hg-row { margin-bottom: 8px; }
+  .virtual-keyboard .simple-keyboard .hg-button[data-skbtn="{done}"] { width: 60px !important; min-width: 60px !important; max-width: 60px !important; flex: 0 0 60px !important; }
+}
+
+/* Body when keyboard open - ONLY when .virtual-keyboard-open class is present */
+body.virtual-keyboard-open {
+  overflow: hidden !important;
+}
+
+body.virtual-keyboard-open .MuiDialog-root .MuiDialog-container {
+  max-height: calc(100vh - 300px) !important;
+  align-items: flex-start !important;
+  padding-top: 20px;
+}
+
+body.virtual-keyboard-open .MuiDialog-root .MuiDialog-paper {
+  max-height: calc(100vh - 340px) !important;
+  margin: 0 auto !important;
+}
+
+body.virtual-keyboard-open .MuiDialogContent-root {
+  overflow-y: auto !important;
+  scroll-behavior: smooth !important;
+  max-height: calc(100vh - 420px) !important;
+}
+
+body.virtual-keyboard-open .kiosk-content,
+body.virtual-keyboard-open main {
+  max-height: calc(100vh - 300px) !important;
+  overflow-y: auto !important;
+  scroll-behavior: smooth !important;
+  padding-bottom: 30px !important;
+}
+
+@media print { .virtual-keyboard-wrapper { display: none !important; } }

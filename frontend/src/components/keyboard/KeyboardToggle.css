@@ -1,0 +1,78 @@
+/* Keyboard control in the global kiosk action stack */
+.keyboard-toggle-btn {
+  position: fixed;
+  top: clamp(210px, 34vh, 360px);
+  right: 16px;
+  z-index: 1302;
+  width: var(--kiosk-control-width);
+  height: var(--kiosk-control-height);
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.keyboard-toggle-btn.enabled {
+  background: linear-gradient(120deg, #1565c0, #1e88e5);
+  color: white;
+}
+
+.keyboard-toggle-btn.disabled {
+  background: linear-gradient(120deg, #5f6b7a, #77869a);
+  color: white;
+}
+
+.keyboard-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 26px rgba(15, 23, 42, 0.24);
+}
+
+.keyboard-toggle-btn:active {
+  transform: translateY(1px);
+}
+
+.keyboard-toggle-label {
+  display: none;
+}
+
+/* Diagonal line for disabled state */
+.toggle-off-line {
+  position: absolute;
+  width: 32px;
+  height: 3px;
+  background: #f44336;
+  transform: rotate(-45deg);
+  border-radius: 1px;
+  left: 66px;
+}
+
+/* Make button smaller on mobile */
+@media (max-width: 600px) {
+  .keyboard-toggle-btn {
+    width: 138px;
+    height: 36px;
+    top: 118px;
+    right: 10px;
+    padding: 0 10px;
+    font-size: 0.74rem;
+  }
+
+  .keyboard-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .toggle-off-line {
+    width: 22px;
+  }
+}

@@ -1,0 +1,305 @@
+/**
+ * Voice Input Component Styles
+ *
+ * Styles for voice input functionality including animations,
+ * visual feedback, and kiosk-friendly accessibility features.
+ */
+
+/* ============================================
+   Floating Voice Input Container
+   ============================================ */
+
+.voice-input-container {
+  pointer-events: auto;
+}
+
+/* ============================================
+   Mic Button Animations
+   ============================================ */
+
+.voice-mic-button {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.voice-mic-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Pulse animation when listening */
+.voice-mic-button.listening {
+  animation: voice-pulse-scale 1.5s ease-in-out infinite;
+}
+
+.voice-mic-button.listening::before {
+  animation: voice-pulse-ring 1.5s ease-out infinite;
+  background-color: rgba(244, 67, 54, 0.4);
+}
+
+@keyframes voice-pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes voice-pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   Status Indicator
+   ============================================ */
+
+.voice-status-indicator {
+  transition: all 0.3s ease;
+}
+
+.voice-status-indicator.listening {
+  animation: voice-status-pulse 2s ease-in-out infinite;
+}
+
+.voice-status-indicator.error {
+  animation: voice-status-shake 0.5s ease;
+}
+
+@keyframes voice-status-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes voice-status-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* ============================================
+   Inline Voice Button (for input fields)
+   ============================================ */
+
+.voice-input-inline-button {
+  transition: all 0.2s ease;
+}
+
+.voice-input-inline-button.listening {
+  animation: voice-inline-pulse 1s ease-in-out infinite;
+}
+
+@keyframes voice-inline-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 67, 54, 0);
+  }
+}
+
+/* ============================================
+   Voice Language Button
+   ============================================ */
+
+.voice-lang-button {
+  transition: all 0.2s ease;
+}
+
+.voice-lang-button:hover {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   Voice Status Text
+   ============================================ */
+
+.voice-status-text {
+  transition: all 0.2s ease;
+}
+
+.voice-status-text.error {
+  animation: voice-text-fade 0.3s ease;
+}
+
+@keyframes voice-text-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   Sound Wave Animation (for visual feedback)
+   ============================================ */
+
+.voice-sound-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.voice-sound-wave-bar {
+  width: 3px;
+  background-color: currentColor;
+  border-radius: 2px;
+  animation: voice-wave 1s ease-in-out infinite;
+}
+
+.voice-sound-wave-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.voice-sound-wave-bar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.voice-sound-wave-bar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.voice-sound-wave-bar:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.voice-sound-wave-bar:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+@keyframes voice-wave {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 20px;
+  }
+}
+
+/* ============================================
+   Accessibility Enhancements
+   ============================================ */
+
+/* High contrast focus states */
+.voice-mic-button:focus-visible,
+.voice-input-inline-button:focus-visible,
+.voice-lang-button:focus-visible {
+  outline: 3px solid #1976d2;
+  outline-offset: 3px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .voice-mic-button,
+  .voice-mic-button::before,
+  .voice-mic-button.listening,
+  .voice-input-inline-button,
+  .voice-input-inline-button.listening,
+  .voice-status-indicator,
+  .voice-status-indicator.listening,
+  .voice-status-indicator.error,
+  .voice-sound-wave-bar {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================
+   Kiosk/Touch Screen Optimizations
+   ============================================ */
+
+/* Larger touch targets for kiosk use */
+@media (pointer: coarse) {
+  .voice-mic-button {
+    min-width: 64px;
+    min-height: 64px;
+  }
+
+  .voice-input-inline-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .voice-lang-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Large screen kiosk display adjustments */
+@media (min-width: 1200px) and (min-height: 800px) {
+  .voice-mic-button {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .voice-mic-button svg {
+    font-size: 40px !important;
+  }
+
+  .voice-lang-button {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .voice-status-indicator {
+    min-width: 200px;
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   Dark Mode Support (if needed in future)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .voice-input-container {
+    --voice-bg: rgba(30, 30, 30, 0.95);
+    --voice-text: #ffffff;
+  }
+}
+
+/* ============================================
+   Print Styles (hide voice elements)
+   ============================================ */
+
+@media print {
+  .voice-input-container,
+  .voice-input-button-container,
+  .voice-mic-button,
+  .voice-input-inline-button,
+  .voice-lang-button {
+    display: none !important;
+  }
+}

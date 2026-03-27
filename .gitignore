@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+env
+backend/env
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Uploads
+backend/uploads/documents/*
+backend/uploads/gas-documents/*
+!backend/uploads/documents/.gitkeep
+!backend/uploads/gas-documents/.gitkeep
+
+# Misc
+.cache/
+*.pid
+*.seed
+*.pid.lock
+
+# VS Code Local History
+.history/

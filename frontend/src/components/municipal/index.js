@@ -1,0 +1,12 @@
+export { default as MunicipalPropertyTaxForm } from './MunicipalPropertyTaxForm';
+export { default as MunicipalBirthDeathCertForm } from './MunicipalBirthDeathCertForm';
+export { default as MunicipalTradeLicenseForm } from './MunicipalTradeLicenseForm';
+export { default as MunicipalBuildingPermitForm } from './MunicipalBuildingPermitForm';
+export { default as MunicipalSanitationForm } from './MunicipalSanitationForm';
+export { default as MunicipalRoadsForm } from './MunicipalRoadsForm';
+export { default as MunicipalHealthEnvForm } from './MunicipalHealthEnvForm';
+export { default as MunicipalHousingForm } from './MunicipalHousingForm';
+export { default as MunicipalMarriageRegForm } from './MunicipalMarriageRegForm';
+export { default as MunicipalGrievanceForm } from './MunicipalGrievanceForm';
+export { default as MunicipalAdminServicesForm } from './MunicipalAdminServicesForm';
+export { default as DocUpload } from './DocUpload';
