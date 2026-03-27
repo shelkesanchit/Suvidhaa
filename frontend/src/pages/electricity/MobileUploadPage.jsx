@@ -6,13 +6,13 @@ import {
 import {
   CloudUpload, CheckCircle, ErrorOutline, PhoneAndroid, CameraAlt,
 } from '@mui/icons-material';
-import api from '../../utils/api';
 
-// Bare fetch helper using window.location.origin — works on any host
-// (kiosk localhost, LAN IP on same WiFi, or Cloudflare tunnel URL)
+// Use VITE_API_URL for production (Render), fallback to same origin for local dev
+const API_BASE = import.meta.env.VITE_API_URL || `${window.location.origin}/api`;
+
 const mobileApi = {
-  get: (path) => fetch(`${window.location.origin}/api${path}`).then(r => r.ok ? r.json() : Promise.reject(r)),
-  post: (path, body) => fetch(`${window.location.origin}/api${path}`, {
+  get: (path) => fetch(`${API_BASE}${path}`).then(r => r.ok ? r.json() : Promise.reject(r)),
+  post: (path, body) => fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
