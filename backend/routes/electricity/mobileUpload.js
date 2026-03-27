@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const os = require('os');
+const multer = require('multer');
+const supabase = require('../../config/supabase');
 
 // Detect the machine's LAN IPv4 (first non-loopback)
 function getLanIp() {
@@ -37,6 +39,25 @@ function getQrBaseUrl() {
   const lanIp = getLanIp();
   return `http://${lanIp}:${frontendPort}`;
 }
+
+// Configure multer for memory storage (files stored in memory as Buffer)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit (increased from 5MB)
+  fileFilter: (req, file, cb) => {
+    // Allow images and PDFs
+    const allowed = /jpeg|jpg|png|gif|pdf/;
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    const mimeOk = allowed.test(file.mimetype);
+    const extOk = allowed.test(ext);
+
+    if (mimeOk && extOk) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images (JPEG, PNG, GIF) and PDF files are allowed'));
+    }
+  }
+});
 
 // In-memory session store: token -> { docKey, docLabel, expiresAt, file, applicationId }
 const sessions = new Map();
@@ -100,27 +121,62 @@ router.get('/status/:token', (req, res) => {
   res.json({ ready: false });
 });
 
-// POST /upload/:token  { name, type, size, data (base64) }
-router.post('/upload/:token', (req, res) => {
-  const session = sessions.get(req.params.token);
-  if (!session || Date.now() > session.expiresAt) {
-    return res.status(404).json({ error: 'Session not found or expired' });
+// POST /upload/:token - Upload file using multipart/form-data (IMPROVED - uses FormData instead of base64)
+router.post('/upload/:token', upload.single('file'), async (req, res) => {
+  try {
+    const session = sessions.get(req.params.token);
+    if (!session || Date.now() > session.expiresAt) {
+      return res.status(404).json({ error: 'Session not found or expired' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Option 1: Store file in session (for desktop polling)
+    // Convert buffer to base64 for consistent storage format
+    const base64Data = req.file.buffer.toString('base64');
+
+    session.file = {
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      size: req.file.size,
+      data: base64Data,
+    };
+
+    // Option 2: If you want to upload directly to Supabase (uncomment below)
+    /*
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'electricity-documents';
+    const filename = `mobile-uploads/${Date.now()}-${Math.round(Math.random() * 1e9)}-${req.file.originalname}`;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(filename, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+      });
+
+    if (error) {
+      throw new Error('Storage upload failed: ' + error.message);
+    }
+
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filename);
+
+    session.file = {
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      size: req.file.size,
+      url: urlData.publicUrl,
+    };
+    */
+
+    console.log(`✅ File uploaded via mobile: ${req.file.originalname} (${(req.file.size / 1024).toFixed(2)} KB)`);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Mobile upload error:', error);
+    res.status(500).json({ error: 'Upload failed', details: error.message });
   }
-  const { name, type, size, data } = req.body;
-  if (!data || typeof data !== 'string') {
-    return res.status(400).json({ error: 'No file data provided' });
-  }
-  // Base64 of 5MB raw ≈ 6.7MB string — reject anything over 8MB string length
-  if (data.length > 8 * 1024 * 1024) {
-    return res.status(413).json({ error: 'File too large (max 5MB)' });
-  }
-  session.file = {
-    name: name || 'upload',
-    type: type || 'application/octet-stream',
-    size: size || 0,
-    data,
-  };
-  res.json({ success: true });
 });
 
 module.exports = router;

@@ -17,6 +17,15 @@ const mobileApi = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   }).then(r => r.ok ? r.json() : Promise.reject(r)),
+  // New method for multipart/form-data uploads
+  uploadFile: (path, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      body: formData, // Don't set Content-Type header - browser sets it with boundary
+    }).then(r => r.ok ? r.json() : Promise.reject(r));
+  }
 };
 
 export default function MobileUploadPage() {
@@ -34,35 +43,27 @@ export default function MobileUploadPage() {
       .catch(() => setPhase('expired'));
   }, [token]);
 
-  const processFile = (file) => {
+  const processFile = async (file) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('File size exceeds 5MB. Please choose a smaller file.');
+
+    // Increased limit to 10MB (matches backend)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg('File size exceeds 10MB. Please choose a smaller file.');
       setPhase('error');
       return;
     }
+
     setPhase('uploading');
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const data = reader.result.split(',')[1];
-        await mobileApi.post(`/electricity/mobile-upload/upload/${token}`, {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          data,
-        });
-        setPhase('done');
-      } catch {
-        setErrorMsg('Upload failed. Please try again.');
-        setPhase('error');
-      }
-    };
-    reader.onerror = () => {
-      setErrorMsg('Could not read the file. Please try again.');
+
+    try {
+      // Use FormData upload - much more efficient than base64!
+      await mobileApi.uploadFile(`/electricity/mobile-upload/upload/${token}`, file);
+      setPhase('done');
+    } catch (error) {
+      console.error('Upload error:', error);
+      setErrorMsg('Upload failed. Please check your connection and try again.');
       setPhase('error');
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleFileChange = (e) => processFile(e.target.files[0]);
@@ -85,7 +86,7 @@ export default function MobileUploadPage() {
               Upload: {docLabel}
             </Typography>
             <Typography variant="body2" color="text.secondary" mb={3}>
-              Take a clear photo or choose a file. Max 5MB.
+              Take a clear photo or choose a file. Max 10MB.
             </Typography>
 
             {/* Camera / direct capture */}
@@ -126,7 +127,7 @@ export default function MobileUploadPage() {
             </Button>
 
             <Typography variant="caption" color="text.secondary">
-              Accepted: JPEG, PNG, PDF · Max 5 MB
+              Accepted: JPEG, PNG, PDF · Max 10 MB
             </Typography>
           </Box>
         );
