@@ -11,13 +11,18 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - supports local development and external tunnels (Ngrok, Cloudflare)
+// CORS configuration - supports local development, tunnels, and Render deployment
 const allowedOrigins = [
   'http://localhost:3000', 'http://localhost:3001',
   'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175',
   'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178',
   'http://localhost:5179', 'http://localhost:5180'
 ];
+
+// Add frontend URL if configured
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
+}
 
 // Add external tunnel URL if configured
 if (process.env.EXTERNAL_URL) {
@@ -31,6 +36,11 @@ app.use(cors({
 
     // Allow configured origins
     if (allowedOrigins.some(allowed => origin.startsWith(allowed.replace(/\/$/, '')))) {
+      return callback(null, true);
+    }
+
+    // Allow Render URLs dynamically
+    if (origin.includes('.onrender.com')) {
       return callback(null, true);
     }
 
